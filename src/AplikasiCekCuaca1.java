@@ -1,3 +1,7 @@
+import java.awt.Image;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.HashMap;
@@ -6,12 +10,23 @@ import javax.swing.ImageIcon;
 
 public class AplikasiCekCuaca1 extends javax.swing.JFrame {
 
-    /**
-     * Creates new form AplikasiCekCuaca1
-     */
+    DefaultTableModel model = new DefaultTableModel();
+    private Map<String, ImageIcon> weatherIcons;
+    private CekCuaca weatherService;
+
     public AplikasiCekCuaca1() {
         initComponents();
+        weatherService = new CekCuaca();
+        weatherIcons = new HashMap<>();
+        weatherIcons.put("clear", new ImageIcon("src/icons/clear.jpg"));
+        weatherIcons.put("cloudy", new ImageIcon("src/icons/cloudy.png"));
+        weatherIcons.put("rain", new ImageIcon("src/icons/rain.png"));
+
+        
+
     }
+    
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -24,16 +39,17 @@ public class AplikasiCekCuaca1 extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         buttonCheckWeather = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        tableWeather = new javax.swing.JTable();
+        favorit = new javax.swing.JButton();
+        export = new javax.swing.JButton();
         jTextField1 = new javax.swing.JTextField();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jComboBox2 = new javax.swing.JComboBox<>();
+        favoriteComboBox = new javax.swing.JComboBox<>();
+        cityComboBox = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        labelIcon = new javax.swing.JLabel();
+        iconLabel = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        resultTextArea = new javax.swing.JTextArea();
+        iconLabel2 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -41,23 +57,25 @@ public class AplikasiCekCuaca1 extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(102, 255, 255));
 
         buttonCheckWeather.setText("Cek Cuaca");
-
-        jButton2.setText("Simpan");
-
-        jButton3.setText("Hapus");
-
-        tableWeather.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
-            },
-            new String [] {
-                "Kota", "Suhu", "Kondisi"
+        buttonCheckWeather.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCheckWeatherActionPerformed(evt);
             }
-        ));
-        jScrollPane1.setViewportView(tableWeather);
+        });
+
+        favorit.setText("Tambah Favorit");
+        favorit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                favoritActionPerformed(evt);
+            }
+        });
+
+        export.setText("Export");
+        export.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exportActionPerformed(evt);
+            }
+        });
 
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -65,73 +83,80 @@ public class AplikasiCekCuaca1 extends javax.swing.JFrame {
             }
         });
 
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pilih", "Jakarta", "Bandung", "Kalimantan Selatan" }));
+        cityComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select City", "Tokyo", "Jakarta", "Bandung", "Banjarmasin" }));
 
         jLabel3.setText("Favorit");
 
         jLabel4.setText("Pilih Lokasi");
 
-        labelIcon.setText("Gambar");
+        resultTextArea.setColumns(20);
+        resultTextArea.setRows(5);
+        jScrollPane2.setViewportView(resultTextArea);
+
+        iconLabel2.setText("Gambar");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(14, 14, 14)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(135, 135, 135)
+                        .addComponent(jLabel4)
+                        .addGap(85, 85, 85)
+                        .addComponent(jLabel3))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(cityComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(20, 20, 20)
+                        .addComponent(favoriteComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
                         .addComponent(buttonCheckWeather)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton3))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(favorit)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(export))
+                    .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 309, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(120, 120, 120)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addGap(95, 95, 95)
-                                .addComponent(jLabel3)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(30, 30, 30)
-                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE)))
-                        .addGap(18, 18, 18)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(185, 185, 185)
+                        .addComponent(iconLabel2))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(60, 60, 60)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(208, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(labelIcon)
-                .addGap(330, 330, 330))
+                        .addGap(64, 64, 64)
+                        .addComponent(iconLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(139, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(81, 81, 81)
+                .addGap(24, 24, 24)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel3))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(cityComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(favoriteComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(iconLabel2)))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(buttonCheckWeather)
-                    .addComponent(jButton2)
-                    .addComponent(jButton3))
-                .addGap(2, 2, 2)
-                .addComponent(labelIcon)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(buttonCheckWeather)
+                            .addComponent(favorit)
+                            .addComponent(export))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(iconLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(73, Short.MAX_VALUE))
         );
 
         jLabel5.setFont(new java.awt.Font("Segoe UI Emoji", 1, 24)); // NOI18N
@@ -142,12 +167,13 @@ public class AplikasiCekCuaca1 extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addGap(284, 284, 284)
-                .addComponent(jLabel5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(284, 284, 284)
+                        .addComponent(jLabel5))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -156,16 +182,70 @@ public class AplikasiCekCuaca1 extends javax.swing.JFrame {
                 .addGap(23, 23, 23)
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+
+    
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField1ActionPerformed
+
+    private void buttonCheckWeatherActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCheckWeatherActionPerformed
+        String selectedCity = (String) cityComboBox.getSelectedItem();
+
+        if (selectedCity.equals("Pilih Kota") || selectedCity.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih kota terlebih dahulu.");
+            return;
+        }
+
+        // Panggil metode dari CekCuaca.java untuk mendapatkan data cuaca
+        String weatherResult = CekCuaca.getWeather(selectedCity);
+        
+        // Tambahkan hasil baru ke JTextArea tanpa menghapus data sebelumnya
+        resultTextArea.append(weatherResult + "\n\n");
+
+        // Menentukan ikon cuaca berdasarkan kondisi
+        if (weatherResult.toLowerCase().contains("clear")) {
+            iconLabel.setIcon(new ImageIcon("src/icons/clear.jpg"));
+        } else if (weatherResult.toLowerCase().contains("cloud")) {
+            iconLabel.setIcon(new ImageIcon("src/icons/cloudy.png"));
+        } else if (weatherResult.toLowerCase().contains("rain")) {
+            iconLabel.setIcon(new ImageIcon("src/icons/rain.png"));
+        } else {
+            iconLabel.setIcon(null); // Jika tidak ada ikon yang cocok
+        }
+
+    }//GEN-LAST:event_buttonCheckWeatherActionPerformed
+
+    private void favoritActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_favoritActionPerformed
+        String selectedCity = (String) cityComboBox.getSelectedItem();
+        
+        if (!selectedCity.equals("Pilih Kota") && !selectedCity.isEmpty()) {
+            if (((DefaultComboBoxModel<String>) favoriteComboBox.getModel()).getIndexOf(selectedCity) == -1) {
+                favoriteComboBox.addItem(selectedCity);
+                JOptionPane.showMessageDialog(this, "Kota " + selectedCity + " ditambahkan ke favorit.");
+            } else {
+                JOptionPane.showMessageDialog(this, "Kota sudah ada di daftar favorit.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Silakan pilih kota terlebih dahulu.");
+        }
+    }//GEN-LAST:event_favoritActionPerformed
+
+    private void exportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportActionPerformed
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter("csv/weather_data.txt", true))) {
+            writer.write(resultTextArea.getText());
+            writer.newLine();
+            JOptionPane.showMessageDialog(this, "Data berhasil diekspor ke weather_data.txt");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Gagal mengekspor data: " + e.getMessage());
+        }
+    }//GEN-LAST:event_exportActionPerformed
 
     /**
      * @param args the command line arguments
@@ -204,17 +284,18 @@ public class AplikasiCekCuaca1 extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCheckWeather;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox2;
+    private javax.swing.JComboBox<String> cityComboBox;
+    private javax.swing.JButton export;
+    private javax.swing.JButton favorit;
+    private javax.swing.JComboBox<String> favoriteComboBox;
+    private javax.swing.JLabel iconLabel;
+    private javax.swing.JLabel iconLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JLabel labelIcon;
-    private javax.swing.JTable tableWeather;
+    private javax.swing.JTextArea resultTextArea;
     // End of variables declaration//GEN-END:variables
 }
